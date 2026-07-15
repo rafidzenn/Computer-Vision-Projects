@@ -24,12 +24,19 @@ plumbing — it is not meaningful for results.
 ## Using a real dataset (recommended for real results)
 
 **MoNuSeg** (H&E stained, multiple organs → the "heterogeneous backgrounds" the
-project brief asks for) is a good first real dataset. Its annotations come as
-per-image XML polygons, so there is one extra step: rasterize each XML into a
-binary PNG mask, then drop images/masks into the layout above.
+project brief asks for) is a good first real dataset:
+[monuseg.grand-challenge.org/Data](https://monuseg.grand-challenge.org/Data/).
+It ships `.tif` images with `.xml` polygon annotations.
+
+Don't build the masks by hand — run the included converter, which rasterizes the
+XML polygons, splits by slide, and tiles the images into the layout above:
+
+```bash
+python support/prepare_monuseg.py --src /path/to/MoNuSeg --out data/nuclei
+```
 
 Other common options: **Data Science Bowl 2018** (fastest; masks already
 provided) and **PanNuke** / **CoNSeP** (multi-class, harder).
 
-> Split by **slide**, not by patch — patches from the same slide must not appear
-> in both train and val, or the reported metrics will be optimistically biased.
+> The converter splits by **slide**, not by patch — patches from the same slide
+> never appear in both train and val, so reported metrics aren't inflated.
