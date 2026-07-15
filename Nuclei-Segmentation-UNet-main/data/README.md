@@ -21,7 +21,7 @@ If this folder is empty, `main.py` auto-generates a small **synthetic** set here
 so the pipeline runs end-to-end with zero setup. Synthetic data only tests the
 plumbing — it is not meaningful for results.
 
-## Using a real dataset (recommended for real results)
+## Using a real dataset (recommended to do after you understand how the PoC works)
 
 **MoNuSeg** (H&E stained, multiple organs → the "heterogeneous backgrounds" the
 project brief asks for) is a good first real dataset:
