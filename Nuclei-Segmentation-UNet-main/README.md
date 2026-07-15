@@ -33,6 +33,7 @@ Part of the [Computer-Vision-Projects](../) portfolio.
 │   ├── evaluate.py      # Dice / IoU
 │   ├── inference.py     # prediction + overlay
 │   ├── synthetic_data.py# tracer-bullet data generator
+│   ├── prepare_monuseg.py # MoNuSeg .tif/.xml -> training layout (real data)
 │   └── utils.py         # seeding, metrics, loss
 └── others/            # presentation, reports, demo video (course deliverables)
 ```
@@ -46,14 +47,31 @@ python main.py                        # 5 epochs on 128px synthetic data (CPU-fr
 
 Outputs (`unet_poc.pt` weights and `sample_overlay.png`) are written to `outputs/`.
 
-### Run on real data
+### Run on real data (MoNuSeg) — the intended workflow
 
-Place a real dataset under `data/nuclei/` in the layout described in
-[`data/README.md`](data/README.md), then:
+The synthetic data is only a plumbing test. To train a real model:
+
+**1. Download MoNuSeg** (CC BY-NC-SA 4.0) from the official challenge page —
+[monuseg.grand-challenge.org/Data](https://monuseg.grand-challenge.org/Data/).
+It ships 30 training slides (1000×1000 H&E, 7 organs) as `.tif` images with
+`.xml` polygon annotations. Unzip it anywhere.
+
+**2. Convert it to this repo's layout** with the included preparation script.
+It rasterizes the XML polygons into binary masks, splits **by slide** (so no
+tile leaks between train and val), and tiles each slide into patches:
 
 ```bash
-python main.py --epochs 30 --size 256
+python support/prepare_monuseg.py --src /path/to/MoNuSeg --out data/nuclei
 ```
+
+**3. Train on it** — `main.py` auto-detects the real data and skips synthetic:
+
+```bash
+python main.py --epochs 40 --size 256
+```
+
+A vanilla U-Net typically reaches ~0.75–0.82 foreground Dice on MoNuSeg. For
+overlapping tiles (more training patches), pass `--stride 128` to the prep step.
 
 ## Method (PoC)
 
@@ -74,8 +92,8 @@ python main.py --epochs 30 --size 256
 
 ## Roadmap: scaling from PoC → functional system
 
-1. **Real data + honest splits** — MoNuSeg/PanNuke, split by slide, report on
-   unseen slides.
+1. **Real data + honest splits** — MoNuSeg via `support/prepare_monuseg.py`
+   (splits by slide, tiles patches); report on unseen slides.
 2. **Instance segmentation** — watershed post-processing, or switch to
    **StarDist / HoVer-Net / Cellpose**; evaluate with **AJI** and **Panoptic
    Quality**, not just Dice.
